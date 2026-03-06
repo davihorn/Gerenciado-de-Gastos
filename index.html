@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style/style.css">
+<title>Finance Dashboard Premium</title>
+</head>
+<body>
+
+<div class="container">
+
+<h1>💎 Finance Dashboard</h1>
+
+<div class="cards">
+    <div class="card">
+        <h2>Total Geral</h2>
+        <p id="totalGeral">R$ 0.00</p>
+    </div>
+    <div class="card">
+        <h2>Quantidade</h2>
+        <p id="quantidade">0</p>
+    </div>
+</div>
+
+<form id="expenseForm">
+    <input type="text" id="descricao" placeholder="Descrição" required>
+    <input type="number" id="valor" placeholder="Valor" step="0.01" required>
+    <input type="date" id="data" required>
+    <select id="categoria" required>
+        <option value="">Categoria</option>
+        <option>Alimentação</option>
+        <option>Transporte</option>
+        <option>Moradia</option>
+        <option>Lazer</option>
+        <option>Outros</option>
+    </select>
+    <button type="submit">Adicionar</button>
+</form>
+
+<table>
+    <thead>
+        <tr>
+            <th>Descrição</th>
+            <th>Categoria</th>
+            <th>Valor</th>
+            <th>Data</th>
+            <th>Ação</th>
+        </tr>
+    </thead>
+    <tbody id="listaGastos"></tbody>
+</table>
+
+<div class="dashboard">
+    <div class="chart-box">
+        <canvas id="graficoPizza"></canvas>
+    </div>
+    <div class="chart-box">
+        <canvas id="graficoBarras"></canvas>
+    </div>
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const form=document.getElementById("expenseForm");
+const lista=document.getElementById("listaGastos");
+const totalEl=document.getElementById("totalGeral");
+const quantidadeEl=document.getElementById("quantidade");
+
+let gastos=JSON.parse(localStorage.getItem("gastosPremium"))||[];
+let graficoPizza;
+let graficoBarras;
+
+const cores=[
+"#3b82f6","#6366f1","#8b5cf6",
+"#ec4899","#f43f5e","#f59e0b",
+"#10b981","#14b8a6"
+];
+
+function salvar(){
+localStorage.setItem("gastosPremium",JSON.stringify(gastos));
+}
+
+function atualizar(){
+lista.innerHTML="";
+let total=0;
+
+gastos.forEach((g,i)=>{
+total+=parseFloat(g.valor);
+lista.innerHTML+=`
+<tr>
+<td>${g.descricao}</td>
+<td>${g.categoria}</td>
+<td>R$ ${parseFloat(g.valor).toFixed(2)}</td>
+<td>${g.data}</td>
+<td><button class="delete-btn" onclick="remover(${i})">X</button></td>
+</tr>`;
+});
+
+totalEl.innerText="R$ "+total.toFixed(2);
+quantidadeEl.innerText=gastos.length;
+
+atualizarGraficos();
+}
+
+function remover(i){
+gastos.splice(i,1);
+salvar();
+atualizar();
+}
+
+form.addEventListener("submit",e=>{
+e.preventDefault();
+gastos.push({
+descricao:descricao.value,
+valor:valor.value,
+data:data.value,
+categoria:categoria.value
+});
+salvar();
+atualizar();
+form.reset();
+});
+
+function atualizarGraficos(){
+const categorias={};
+gastos.forEach(g=>{
+categorias[g.categoria]=(categorias[g.categoria]||0)+parseFloat(g.valor);
+});
+
+const labels=Object.keys(categorias);
+const valores=Object.values(categorias);
+
+if(graficoPizza)graficoPizza.destroy();
+if(graficoBarras)graficoBarras.destroy();
+
+graficoPizza=new Chart(document.getElementById("graficoPizza"),{
+type:'doughnut',
+data:{
+labels:labels,
+datasets:[{
+data:valores,
+backgroundColor:cores
+}]
+},
+options:{
+responsive:true,
+plugins:{
+legend:{labels:{color:"white"}}
+},
+animation:{duration:1200}
+}
+});
+
+graficoBarras=new Chart(document.getElementById("graficoBarras"),{
+type:'bar',
+data:{
+labels:labels,
+datasets:[{
+data:valores,
+backgroundColor:cores
+}]
+},
+options:{
+responsive:true,
+scales:{
+x:{ticks:{color:"white"}},
+y:{ticks:{color:"white"}}
+},
+plugins:{legend:{display:false}},
+animation:{duration:1200}
+}
+});
+}
+
+atualizar();
+</script>
+
+</body>
+</html>
