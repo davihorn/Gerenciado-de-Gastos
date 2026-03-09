@@ -195,7 +195,7 @@ cursor:pointer;
 
 <input type="text" id="descricao" placeholder="Descrição" required>
 
-<input type="text" id="valor" placeholder="Valor R$ ou -R$" required>
+<input type="text" id="valor" placeholder="Valor R$" required>
 
 <input type="date" id="data" required>
 
@@ -287,14 +287,12 @@ return d.toLocaleDateString("pt-BR");
 
 function formatarMoeda(valor){
 
-let negativo = valor.includes("-");
-
 valor = valor.replace(/\D/g,"");
 valor = (valor/100).toFixed(2)+"";
 valor = valor.replace(".",",");
 valor = valor.replace(/\B(?=(\d{3})+(?!\d))/g,".");
 
-return (negativo ? "-R$ " : "R$ ") + valor;
+return "R$ "+valor;
 
 }
 
@@ -311,14 +309,14 @@ lista.innerHTML+=`
 <tr>
 <td>${g.descricao}</td>
 <td>${g.categoria}</td>
-<td>${g.valor < 0 ? "-R$ " : "R$ "} ${Math.abs(g.valor).toFixed(2).replace(".",",")}</td>
+<td>R$ ${parseFloat(g.valor).toFixed(2).replace(".",",")}</td>
 <td>${formatarData(g.data)}</td>
 <td><button class="delete-btn" onclick="remover(${i})">X</button></td>
 </tr>`;
 
 });
 
-totalEl.innerText=(total < 0 ? "-R$ " : "R$ ") + Math.abs(total).toFixed(2).replace(".",",");
+totalEl.innerText="R$ "+total.toFixed(2).replace(".",",");
 quantidadeEl.innerText=gastos.length;
 
 atualizarGraficos();
@@ -335,13 +333,7 @@ form.addEventListener("submit",e=>{
 
 e.preventDefault();
 
-let valorInput=document.getElementById("valor").value;
-
-let negativo=valorInput.includes("-");
-
-let valorNumerico=valorInput.replace(/\D/g,"")/100;
-
-if(negativo) valorNumerico = -valorNumerico;
+const valorNumerico=document.getElementById("valor").value.replace(/\D/g,"")/100;
 
 gastos.push({
 descricao:descricao.value,
@@ -397,14 +389,7 @@ legend:{labels:{color:"white"}}
 function addFixo(){
 
 const nome=document.getElementById("nomeFixo").value;
-
-let valorInput=document.getElementById("valorFixo").value;
-
-let negativo=valorInput.includes("-");
-
-let valor=valorInput.replace(/\D/g,"")/100;
-
-if(negativo) valor = -valor;
+const valor=document.getElementById("valorFixo").value.replace(/\D/g,"")/100;
 
 if(!nome || !valor) return;
 
@@ -439,7 +424,7 @@ fixos.forEach((f,i)=>{
 
 lista.innerHTML+=`
 <div class="fixo-item">
-<span>${f.valor < 0 ? "-R$ " : "R$ "} ${Math.abs(f.valor).toFixed(2).replace(".",",")} - ${f.nome}</span>
+<span>${f.nome} - R$ ${f.valor.toFixed(2).replace(".",",")}</span>
 <button class="remover-fixo" onclick="removerFixo(${i})">X</button>
 </div>
 `;
